@@ -65,10 +65,11 @@ This writes `Mjolnir-Setup-<version>.exe` and `Mjolnir-Portable-<version>.exe` t
 
 ## Set up the browser extension
 
-1. Open `chrome://extensions` (or `edge://extensions`) and turn on Developer mode.
-2. Choose Load unpacked and pick the `extension` folder. In an installed copy it is in the app's `resources` folder.
-3. In Mjolnir, click the puzzle icon in the top bar. Copy the token.
-4. Open the extension's options page and paste the token once.
+1. Get the extension folder. Download `Mjolnir-Extension-<version>.zip` from the [latest release](https://github.com/mprateek14/mjolnir/releases/latest) and unzip it. It is also the `extension` folder in this repo.
+2. Open `chrome://extensions` (or `edge://extensions`) and turn on Developer mode.
+3. Choose Load unpacked and pick the unzipped folder.
+4. In Mjolnir, click the puzzle icon in the top bar. Copy the token.
+5. Open the extension's options page and paste the token once.
 
 The extension talks only to `127.0.0.1:24680`, and every request carries the token, so web pages cannot queue downloads on their own.
 
