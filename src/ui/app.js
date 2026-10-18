@@ -13,6 +13,10 @@ let activeTool = null;
 let activity = {};   // downloads in progress per downloader, for the sidebar badges
 
 const EYE_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+// Dedicated downloaders (YouTube, Screener) the user has left turned on in Settings.
+const allDownloaders = () => tools.filter((t) => t.kind !== 'tool');
+const dlEnabled = (id) => !((settings.disabledDownloaders) || []).includes(id);
+const enabledDownloaders = () => allDownloaders().filter((t) => dlEnabled(t.id));
 const FOLDER_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
 const CATS = ['Compressed', 'Documents', 'Music', 'Video', 'Programs', 'Other'];
 
@@ -51,7 +55,7 @@ function renderSide() {
   const head = (title, group) => `<h4 class="sec"><span>${title}</span><button class="vis-btn" data-vis="${group}" title="Choose what to show" aria-label="Choose what to show in ${title}">${EYE_ICON}</button></h4>`;
   // Downloaders: the header stays even when every entry is hidden, so the button to bring them back is still there.
   const section = (title, list) => (list.length ? `<h4>${title}</h4>` + list.map(entry).join('') : '');
-  const downloaders = tools.filter((t) => t.kind !== 'tool');
+  const downloaders = enabledDownloaders();
   const nav = (key, label) => `<div class="nav ${!activeTool && filter === key ? 'on' : ''}" data-f="${key}"><span>${label}</span><span class="n">${count(key)}</span></div>`;
   $('side').innerHTML =
     '<h4>Downloads</h4>' + nav('all', 'All') + nav('active', 'Active') + nav('unfinished', 'Unfinished') + nav('done', 'Completed') + nav('error', 'Failed') +
@@ -217,7 +221,7 @@ const hiddenItems = new Set(store.get('hidden', []));
 function shown(id) { return !hiddenItems.has(id); }
 function visItems(group) {
   if (group === 'categories') return [...CATS.map((c) => ({ id: 'cat:' + c, label: c })), ...tools.filter((t) => t.folder).map((t) => ({ id: 'folder:' + t.id, label: t.name + ' folder' }))];
-  return tools.filter((t) => t.kind !== 'tool').map((t) => ({ id: 'tool:' + t.id, label: t.name }));
+  return enabledDownloaders().map((t) => ({ id: 'tool:' + t.id, label: t.name }));
 }
 let visGroup = null;
 function closeVisMenu() {
@@ -675,7 +679,19 @@ async function batchWhere() {
   }
 }
 
+// Normal is always there. YouTube and Screener only while they are turned on in Settings; with neither, there is no switch.
+function batchModesShown() {
+  let n = 0;
+  for (const b of $('bMode').children) {
+    const on = b.dataset.m === 'normal' || dlEnabled(b.dataset.m);
+    b.hidden = !on;
+    if (on && b.dataset.m !== 'normal') n++;
+  }
+  $('bMode').hidden = n === 0;
+}
+
 function batchMode(m) {
+  if (m !== 'normal' && !dlEnabled(m)) m = 'normal';
   bDirs[bMode] = $('bDir').value.trim();
   bMode = m;
   for (const b of $('bMode').children) b.classList.toggle('on', b.dataset.m === m);
@@ -699,6 +715,7 @@ async function openBatch() {
   $('bFolder').disabled = true;
   $('bBar').style.visibility = 'hidden';
   bMode = 'normal';
+  batchModesShown();
   $('bDir').value = '';
   batchMode('normal');
   if (!dlgBatch.open) dlgBatch.showModal();
@@ -793,6 +810,8 @@ function openSettings(focusId) {
   $('sSched').checked = settings.schedule.enabled;
   $('sStart').value = settings.schedule.start;
   $('sStop').value = settings.schedule.stop;
+  $('sDlSet').hidden = !allDownloaders().length;
+  $('sDownloaders').innerHTML = allDownloaders().map((t) => `<label class="check"><input type="checkbox" data-dl="${esc(t.id)}" ${dlEnabled(t.id) ? 'checked' : ''}> ${esc(t.name)}</label>`).join('');
   if (!dlgSet.open) dlgSet.showModal();
   if (focusId) $(focusId).focus();
 }
@@ -902,8 +921,13 @@ $('sSave').onclick = async () => {
     autoRetry: Number($('sRetry').value), speedLimit: Math.max(0, Number($('sLimitIn').value) || 0) * 1024,
     sortIntoFolders: $('sSort').checked, clipboardWatch: $('sClip').checked,
     schedule: { enabled: $('sSched').checked, start: $('sStart').value || '02:00', stop: $('sStop').value || '06:00' },
+    // Only touch the list when the section was shown, so a failed downloader list never turns everything off.
+    ...($('sDlSet').hidden ? {} : { disabledDownloaders: [...$('sDownloaders').querySelectorAll('input[data-dl]')].filter((c) => !c.checked).map((c) => c.dataset.dl) }),
   });
   dlgSet.close();
+  // A downloader that was just turned off must not stay open on screen.
+  if (activeTool && !dlEnabled(activeTool) && allDownloaders().some((t) => t.id === activeTool)) leaveTool();
+  renderSide();
   renderStatus();
 };
 

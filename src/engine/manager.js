@@ -22,6 +22,7 @@ const DEFAULTS = {
   extensionToken: '',
   extensionEnabled: true,   // take over downloads the browser starts by itself
   extensionMinMB: 2,        // smaller files stay with the browser
+  disabledDownloaders: [],  // ids of dedicated downloaders the user turned off (all on by default)
 };
 
 class Manager extends EventEmitter {

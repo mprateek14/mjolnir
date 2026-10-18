@@ -87,9 +87,12 @@ class DownloaderHost {
 
   // A downloader can claim links with `matches(url)` and handle them with `quickAdd(url)` (default settings, no page).
   // Used when links arrive from outside the UI, for example from a paired phone. Returns null when nobody claims it.
+  isOff(id) { return ((this.getSettings() || {}).disabledDownloaders || []).includes(id); }
+
   async routeLink(url) {
     for (const en of this.entries.values()) {
       if (en.error || typeof en.mod.matches !== 'function' || !en.mod.matches(url)) continue;
+      if (this.isOff(en.mod.id)) throw new Error(`The ${en.mod.name} downloader is turned off. Turn it on in Settings, Downloaders.`);
       const r = await this.instance(en.mod.id).handlers.quickAdd(url);
       return { where: en.mod.name, key: en.mod.id, id: r.id, title: r.title };
     }
@@ -97,13 +100,14 @@ class DownloaderHost {
   }
 
   // Opens the downloader's small pop-up for a page link sent by the browser extension, without showing the main window.
-  // Returns false when no downloader offers one for this link.
+  // Returns false when no downloader offers one for this link, and 'off' when the one that does is turned off.
   openCapture(url) {
     for (const en of this.entries.values()) {
       const cap = en.mod.capture;
       if (en.error || !cap) continue;
       const clean = cap.accept(url);
       if (!clean) continue;
+      if (this.isOff(en.mod.id)) return 'off';
       const { BrowserWindow, nativeImage, screen } = this.e;
       const w = new BrowserWindow({
         width: cap.width, height: cap.height, resizable: false, maximizable: false, show: false, autoHideMenuBar: true,

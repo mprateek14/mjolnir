@@ -213,7 +213,9 @@ function startBridge() {
         if (userAgent) headers['user-agent'] = userAgent;
         if (req.url === '/link') {
           // A page link (YouTube today): the matching downloader opens its own small window.
-          if (host && host.openCapture(url)) { res.writeHead(200, cors); return res.end('ok'); }
+          const opened = host ? host.openCapture(url) : false;
+          if (opened === 'off') { res.writeHead(423, cors); return res.end('off'); }
+          if (opened) { res.writeHead(200, cors); return res.end('ok'); }
           res.writeHead(422, cors); return res.end('unsupported');
         }
         if (req.url === '/stream') {
@@ -297,6 +299,7 @@ function ipc() {
   h('batch:folderName', (mode, dir) => freeBatchName(mode, dir));
   h('batch:run', async ({ mode, lines, dir, start, force, folder }) => {
     if (!['normal', 'screener', 'youtube'].includes(mode) || !Array.isArray(lines)) return [];
+    if (mode !== 'normal' && host && host.isOff(mode)) return lines.map((line) => ({ line: String(line), ok: false, error: 'This downloader is turned off in Settings' }));
     // folder: null for none, '' for an automatic name. One name for the whole batch.
     let sub = '';
     if (folder !== null && folder !== undefined) {

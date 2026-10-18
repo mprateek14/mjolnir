@@ -25,6 +25,7 @@ async function send(url, referrer, filename, path = '/add') {
   try {
     const r = await fetch(`${BRIDGE}${path}`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-mjolnir-token': token }, body: JSON.stringify(body) });
     if (r.status === 401) { chrome.runtime.openOptionsPage(); return fail('token is wrong, copy it again from Settings in the app'); }
+    if (r.status === 423) return fail('this downloader is turned off in the app, Settings, Downloaders');
     if (r.status === 422) return fail('the app has no downloader for this page');
     if (!r.ok) return fail('the app refused the link (' + r.status + ')');
     chrome.action.setBadgeText({ text: 'OK' });

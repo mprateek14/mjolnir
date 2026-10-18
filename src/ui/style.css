@@ -213,3 +213,4 @@ body.dl-active .toolbar-row { display: none; }
 .btn.outline { border-color: var(--accent); color: var(--text); display: inline-flex; align-items: center; gap: 6px; }
 .btn.outline:hover:not(:disabled) { background: var(--accent-dim); border-color: var(--accent); }
 .dlg [hidden] { display: none !important; }
+.modes[hidden], .modes button[hidden] { display: none !important; }
