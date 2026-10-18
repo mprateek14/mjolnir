@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+<title>Screener downloader</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <div>
+      <h1>Screener downloader</h1>
+      <p class="sub">Annual reports, credit ratings and concall documents from screener.in, saved by company in folders.</p>
+    </div>
+    <button class="icon-btn" id="btnGear" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  </header>
+
+  <section class="card fetch">
+    <input id="q" placeholder="Company ticker (AVANTEL) or a screener.in link" spellcheck="false" autocomplete="off">
+    <button class="btn primary" id="btnFind">Find</button>
+    <div class="suggest" id="suggest" hidden></div>
+  </section>
+  <div class="msg" id="msg" hidden></div>
+
+  <section class="card preview" id="preview" hidden>
+    <div class="p-head">
+      <div>
+        <div class="p-title" id="pTitle"></div>
+        <a class="p-link" id="pLink" href="#"></a>
+      </div>
+    </div>
+    <div class="tiles" id="tiles"></div>
+    <details class="items">
+      <summary>Show files</summary>
+      <div id="pItems"></div>
+    </details>
+    <div class="opts">
+      <label class="check"><input type="checkbox" id="oForce"> Download again even if the file already exists</label>
+      <label class="inline">Pause between files
+        <select id="oDelay"><option value="0">None</option><option value="0.5">0.5 s</option><option value="1">1 s</option><option value="2">2 s</option></select>
+      </label>
+    </div>
+    <div class="p-act">
+      <button class="btn primary" id="btnStart">Download</button>
+      <button class="btn" id="btnCancelFind">Cancel</button>
+      <span class="hint" id="pWhere"></span>
+    </div>
+  </section>
+
+  <section class="jobs">
+    <div class="jobs-head"><h2>Downloads</h2><button class="btn" id="btnClear">Clear finished</button></div>
+    <div id="jobList"></div>
+    <div class="empty" id="empty">Nothing downloaded yet.</div>
+  </section>
+</div>
+
+<dialog id="dlgSet">
+  <form method="dialog" class="dlg">
+    <h2>Screener settings</h2>
+    <label>Save to <span class="hint">Each company gets its own folder inside this one.</span>
+      <div class="pick"><input id="sFolder" spellcheck="false"><button type="button" class="btn" id="sBrowse">Browse</button></div>
+    </label>
+    <label>Pause between files <span class="hint">Seconds. Keeps requests gentle on the sites hosting the files.</span>
+      <input id="sDelay" type="number" min="0" max="10" step="0.5">
+    </label>
+    <label class="check"><input type="checkbox" id="sForce"> Download again even if the file already exists, by default</label>
+    <div class="actions"><button type="button" class="btn" id="sCancel">Cancel</button><button type="button" class="btn primary" id="sSave">Save</button></div>
+  </form>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>

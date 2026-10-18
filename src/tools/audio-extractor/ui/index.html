@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+<title>Audio extractor</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <div>
+      <h1>Audio extractor</h1>
+      <p class="sub">Pull the sound out of video files on your PC. Nothing is uploaded anywhere.</p>
+    </div>
+  </header>
+
+  <section class="card tool">
+    <p class="explain">Copies the sound out of a video exactly as it is stored inside. Nothing is converted, so there is no quality loss, and it takes seconds even for large files. An AAC track becomes an .m4a, MP3 stays .mp3, Opus becomes .opus, and so on.</p>
+
+    <div class="drop" id="drop">
+      <div class="drop-title">Drop video files here</div>
+      <button class="btn primary" id="btnPick">Choose files</button>
+    </div>
+    <div class="msg" id="msg" hidden></div>
+
+    <div id="files"></div>
+
+    <div class="where" id="where" hidden>
+      <label class="check"><input type="radio" name="out" value="beside" checked> Save next to the video</label>
+      <label class="check"><input type="radio" name="out" value="folder"> Save in a folder</label>
+      <div class="pick"><input id="folder" placeholder="Choose a folder" spellcheck="false" readonly><button class="btn" id="btnFolder" type="button">Browse</button></div>
+    </div>
+    <div class="act" id="act" hidden>
+      <button class="btn primary" id="btnGo">Extract audio</button>
+      <button class="btn" id="btnClearFiles">Clear</button>
+    </div>
+  </section>
+
+  <section class="jobs">
+    <div class="jobs-head"><h2>Results</h2><button class="btn" id="btnClear">Clear finished</button></div>
+    <div id="jobList"></div>
+    <div class="empty" id="empty">Nothing yet.</div>
+  </section>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+:root {
+  --bg: #0f1115; --surface: #151820; --raised: #1b1f2a; --line: #242936;
+  --text: #dfe3ec; --dim: #8b93a5; --faint: #5b6376; --accent: #5b8cff; --accent-dim: #2a3d6e;
+  --ok: #3fb97f; --warn: #e0a43a; --err: #e5605a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--text); font: 13px/1.45 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; overflow-y: auto; }
+input, select, button { font: inherit; color: inherit; }
+.page { max-width: 980px; margin: 0 auto; padding: 22px 24px 40px; display: grid; gap: 14px; }
+h1 { font-size: 20px; font-weight: 600; }
+h2 { font-size: 14px; font-weight: 600; }
+.sub { color: var(--dim); margin-top: 2px; }
+.btn { background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 5px 12px; cursor: pointer; white-space: nowrap; }
+.btn:hover:not(:disabled) { background: var(--raised); }
+.btn:disabled { color: var(--faint); cursor: default; }
+.btn.primary { background: var(--accent); color: #0a0f1d; font-weight: 600; border-color: transparent; }
+.btn.primary:hover:not(:disabled) { background: #7aa1ff; }
+.btn.sm { padding: 2px 9px; font-size: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 12px; }
+.explain { color: var(--dim); max-width: 700px; }
+.msg { color: var(--err); }
+.msg[hidden], .empty[hidden], [hidden] { display: none !important; }
+.hint { color: var(--faint); font-size: 12px; }
+
+.drop { border: 1.5px dashed var(--line); border-radius: 10px; padding: 22px; display: grid; gap: 10px; justify-items: center; color: var(--dim); transition: border-color .15s, background .15s; }
+.drop.over { border-color: var(--accent); background: #19203a; }
+.drop-title { font-size: 14px; }
+
+.file { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 8px; }
+.f-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.f-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.f-meta { color: var(--faint); font-size: 12px; }
+.f-err { color: var(--err); font-size: 12px; }
+.track { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
+.track input { flex: none; }
+.track .t-main { flex: 1; min-width: 0; }
+.track .t-sub { color: var(--faint); font-size: 12px; }
+.track .t-out { color: var(--ok); font-size: 12px; white-space: nowrap; }
+.track label { display: flex; gap: 10px; align-items: center; flex: 1; cursor: pointer; }
+
+.where { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; }
+.check { display: flex; align-items: center; gap: 7px; }
+.pick { display: flex; gap: 6px; flex: 1; min-width: 240px; }
+.pick input { flex: 1; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 9px; outline: none; color: var(--text); }
+.act { display: flex; gap: 10px; }
+
+.jobs-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.job { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 8px; display: grid; gap: 7px; }
+.j-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.j-title { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.j-act { display: flex; gap: 6px; flex: none; }
+.bar { height: 6px; background: var(--raised); border-radius: 3px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; transition: width .15s linear; }
+.job.done .bar i { background: var(--ok); }
+.job.error .bar i { background: var(--err); }
+.j-stat { font-size: 12px; color: var(--dim); }
+.j-stat.err { color: var(--err); }
+.out { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; padding: 2px 0; }
+.out .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.out .nm:hover { color: var(--accent); }
+.out .sz { color: var(--dim); white-space: nowrap; }
+.note { color: var(--warn); font-size: 12px; }
+.empty { color: var(--faint); text-align: center; padding: 26px 0; }
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-thumb { background: #2a3040; border-radius: 5px; border: 2px solid var(--bg); }

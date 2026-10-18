@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mjolnir</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="titlebar">
+  <div class="brand"><img class="logo" src="icon.png" alt="">Mjolnir</div>
+  <div class="top-icons">
+    <button class="icon-btn" id="btnPhone" title="Send links from your phone" aria-label="Phone link"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg></button>
+    <!-- Scheduler icon, off for now. The scheduler itself still works from Settings.
+    <button class="icon-btn" id="btnSched" title="Scheduler" aria-label="Scheduler"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button>
+    -->
+    <button class="icon-btn" id="btnExt" title="Browser extension" aria-label="Browser extension"><svg viewBox="0 0 24 24"><path d="M9 3h6v4h2a2 2 0 0 1 2 2v3h-3a2 2 0 1 0 0 4h3v3a2 2 0 0 1-2 2h-3v-3a2 2 0 1 0-4 0v3H7a2 2 0 0 1-2-2v-3h3a2 2 0 1 0 0-4H5V9a2 2 0 0 1 2-2h2z"/></svg></button>
+    <button class="icon-btn" id="btnSettings" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  </div>
+</header>
+<div class="toolbar-row">
+  <div class="toolbar">
+    <button class="btn primary" id="btnAdd" title="Add URL (Ctrl+N)">＋ Add URL</button>
+    <button class="btn outline" id="btnBatch" title="Add many links, tickers or videos at once"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg>Add Batch</button>
+    <button class="btn" id="btnResume">Resume</button>
+    <button class="btn" id="btnPause">Pause</button>
+    <button class="btn" id="btnRemove">Remove</button>
+    <span class="sep"></span>
+    <button class="btn" id="btnResumeAll">Start all</button>
+    <button class="btn" id="btnPauseAll">Stop all</button>
+  </div>
+  <div class="search"><input id="search" placeholder="Search downloads" autocomplete="off"></div>
+</div>
+
+<div class="shell">
+  <nav class="side" id="side"></nav>
+
+  <main class="main">
+    <div class="table" id="table">
+      <div class="cols head" id="head"></div>
+      <div class="list" id="list"></div>
+    </div>
+    <div class="empty" id="empty">
+      <div class="empty-title">Nothing here yet</div>
+      <div class="empty-sub">Paste a link with <kbd>Ctrl</kbd>+<kbd>N</kbd>, or drop one onto this window.</div>
+    </div>
+
+    <section class="detail" id="detail">
+      <div class="detail-left">
+        <div class="detail-title" id="dName">No download selected</div>
+        <div class="detail-url" id="dUrl"></div>
+        <div class="seglabel">Connections <span id="dConn"></span></div>
+        <canvas id="segmap" height="26"></canvas>
+        <dl class="facts" id="facts"></dl>
+      </div>
+      <div class="detail-right">
+        <div class="seglabel">Speed <span id="dSpeed"></span></div>
+        <canvas id="graph" height="110"></canvas>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer class="status">
+  <span id="sCount">0 downloads</span>
+  <span class="grow"></span>
+  <span id="sLimit"></span>
+  <span class="speedtag">↓ <b id="sSpeed">0 B/s</b></span>
+</footer>
+
+<div class="menu" id="menu" hidden></div>
+<div class="toast" id="toast" hidden></div>
+
+<dialog id="dlgAdd">
+  <form method="dialog" class="dlg" id="addForm">
+    <h2>Add downloads</h2>
+    <label>Links <span class="hint">one per line</span>
+      <textarea id="addUrls" rows="4" placeholder="https://example.com/file.zip" spellcheck="false"></textarea>
+    </label>
+    <div class="probe" id="probe"></div>
+    <label id="qualRow" hidden>Quality <select id="addQual"></select></label>
+    <div class="row">
+      <label class="grow">Save to
+        <div class="pick"><input id="addDir" spellcheck="false"><button type="button" class="btn" id="addBrowse">Browse</button></div>
+      </label>
+      <label class="narrow">Connections
+        <select id="addConn"></select>
+      </label>
+    </div>
+    <details>
+      <summary>More options</summary>
+      <label>Referrer <input id="addRef" spellcheck="false"></label>
+      <label>Cookie <input id="addCookie" spellcheck="false"></label>
+      <label>Checksum <span class="hint">sha256 hash, or algo:hash</span> <input id="addSum" spellcheck="false"></label>
+      <label>Save as <span class="hint">single link only</span> <input id="addName" spellcheck="false"></label>
+    </details>
+    <div class="actions">
+      <button type="button" class="btn" id="addCancel">Cancel</button>
+      <button type="button" class="btn" id="addLater">Add, don't start</button>
+      <button type="button" class="btn primary" id="addGo">Download</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlgBatch">
+  <form method="dialog" class="dlg" id="batchForm">
+    <h2>Add a batch</h2>
+    <div class="modes" id="bMode">
+      <button type="button" data-m="normal" class="on">Normal</button>
+      <button type="button" data-m="screener">Screener</button>
+      <button type="button" data-m="youtube">YouTube</button>
+    </div>
+    <div class="hint" id="bHelp"></div>
+    <textarea id="bLines" spellcheck="false" wrap="off"></textarea>
+    <div class="probe" id="bInfo"></div>
+    <label>Save to
+      <div class="pick"><input id="bDir" spellcheck="false"><button type="button" class="btn" id="bBrowse">Browse</button></div>
+    </label>
+    <div class="folderrow">
+      <label class="check"><input type="checkbox" id="bNewFolder"> Put them in a new folder</label>
+      <input id="bFolder" spellcheck="false" placeholder="Folder name, or leave empty for Mjolnir_Batch_date" disabled>
+    </div>
+    <div class="hint" id="bWhere"></div>
+    <label class="check" id="bForceRow"><input type="checkbox" id="bForce"> Download again, even files already saved</label>
+    <div class="bar" id="bBar" style="visibility:hidden"><i></i></div>
+    <div class="actions">
+      <button type="button" class="btn" id="bCancel">Cancel</button>
+      <button type="button" class="btn" id="bLater">Add, don't start</button>
+      <button type="button" class="btn primary" id="bGo">Start</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlgSettings">
+  <form method="dialog" class="dlg">
+    <h2>Settings</h2>
+    <div class="row">
+      <label class="grow">Download folder
+        <div class="pick"><input id="sDir" spellcheck="false"><button type="button" class="btn" id="sBrowse">Browse</button></div>
+      </label>
+    </div>
+    <div class="row">
+      <label>Connections per download <select id="sConn"></select></label>
+      <label>Downloads at once <select id="sConc"></select></label>
+      <label>Auto retries <select id="sRetry"></select></label>
+    </div>
+    <div class="row">
+      <label>Speed limit <span class="hint">KB/s, 0 for none</span> <input id="sLimitIn" type="number" min="0" step="50"></label>
+    </div>
+    <label class="check"><input type="checkbox" id="sSort"> Sort finished files into category folders</label>
+    <label class="check"><input type="checkbox" id="sClip"> Offer to download links copied to the clipboard</label>
+    <fieldset>
+      <legend>Scheduler</legend>
+      <label class="check"><input type="checkbox" id="sSched"> Start the queue and stop it on a timer</label>
+      <div class="row">
+        <label>Start <input type="time" id="sStart"></label>
+        <label>Stop <input type="time" id="sStop"></label>
+      </div>
+    </fieldset>
+    <div class="actions">
+      <button type="button" class="btn" id="sCancel">Cancel</button>
+      <button type="button" class="btn primary" id="sSave">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlgExt">
+  <form method="dialog" class="dlg">
+    <h2>Browser extension</h2>
+    <label class="check"><input type="checkbox" id="xOn"> Take over downloads from the browser</label>
+    <div class="hint" id="xOnHint"></div>
+    <label>Leave files smaller than <span class="hint">MB, the browser keeps these. 0 takes everything.</span>
+      <input id="xMin" type="number" min="0" step="1">
+    </label>
+    <label>Token <span class="hint">Paste this into the extension's options page, once.</span>
+      <div class="pick"><input id="xToken" readonly><button type="button" class="btn" id="xCopy">Copy</button></div>
+    </label>
+    <div class="hint">Load the <code>extension</code> folder in Chrome or Edge (Developer mode, Load unpacked). The app listens on 127.0.0.1:24680. The toolbar icon and the right-click menu always work. These two settings only apply to downloads the browser starts by itself.</div>
+    <div class="actions"><button type="button" class="btn primary" id="xClose">Done</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlgPhone">
+  <form method="dialog" class="dlg">
+    <h2>Send links from your phone</h2>
+    <label class="check"><input type="checkbox" id="phOn"> Let paired phones send links to this PC</label>
+    <div id="phOff" class="hint">Turn this on, scan a code with your phone camera, and paste any link on your phone. It starts downloading here. YouTube and screener.in links go to their own downloaders. Windows may ask once to allow Mjolnir on private networks. Choose Allow.</div>
+    <div id="phBody" hidden>
+      <div class="row" id="phNet" hidden>
+        <label class="grow">Network <select id="phIp"></select></label>
+      </div>
+      <div class="ph-addr"><span class="hint">Phone page</span><code id="phUrl"></code><button type="button" class="btn sm" id="phCopy">Copy</button></div>
+      <div class="hint ph-how">Pair once with the code below. After that the phone remembers this PC: open the address above on the phone, or bookmark it or add it to the home screen. If this PC's address changes (it shows here), pair again with a new code. Your router can keep the address fixed with a DHCP reservation.</div>
+      <div class="ph-pair">
+        <button type="button" class="btn primary" id="phPair">Pair a phone</button>
+        <div class="ph-qr" id="phQr" hidden>
+          <img id="phQrImg" alt="QR code" width="200" height="200">
+          <div class="hint" id="phQrNote"></div>
+        </div>
+      </div>
+      <h3 class="ph-h">Paired phones</h3>
+      <div id="phDevices" class="ph-devices"></div>
+      <div class="hint">Anyone on your Wi-Fi holding a paired phone's key can queue downloads here. Remove a phone to cut it off.</div>
+    </div>
+    <div class="msg" id="phMsg"></div>
+    <div class="actions"><button type="button" class="btn primary" id="phClose">Done</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlgLimit">
+  <form method="dialog" class="dlg">
+    <h2>Limit speed</h2>
+    <label id="limName">KB/s, 0 for no limit <input id="limVal" type="number" min="0" step="50"></label>
+    <div class="actions">
+      <button type="button" class="btn" id="limCancel">Cancel</button>
+      <button type="button" class="btn primary" id="limOk">Apply</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>

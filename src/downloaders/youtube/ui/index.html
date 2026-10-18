@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://i.ytimg.com https://*.ytimg.com https://*.ggpht.com">
+<title>YouTube downloader</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <div>
+      <h1>YouTube downloader</h1>
+      <p class="sub">Videos, playlists and audio. Every quality the video offers is listed, 4K and above included.</p>
+    </div>
+    <div class="engine">
+      <span id="engineChip" class="chip">Checking engine</span>
+      <button class="btn" id="btnUpdate" hidden>Check for updates</button>
+      <button class="icon-btn" id="btnGear" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    </div>
+  </header>
+
+  <section class="card setup" id="setup" hidden>
+    <div>
+      <h2>One-time setup</h2>
+      <p>This downloader uses yt-dlp, an open-source tool that keeps up with YouTube changes. Mjolnir downloads the official build (about 18 MB), checks its checksum, and keeps it updatable from here.</p>
+    </div>
+    <div class="setup-act">
+      <button class="btn primary" id="btnInstall">Download engine</button>
+      <div class="bar" id="installBar" hidden><i></i></div>
+      <div class="hint" id="installMsg"></div>
+    </div>
+  </section>
+
+  <section class="card fetch" id="fetch">
+    <input id="url" placeholder="Paste a YouTube video or playlist link" spellcheck="false" autocomplete="off">
+    <button class="btn primary" id="btnFetch">Get video</button>
+  </section>
+  <div class="msg" id="fetchMsg" hidden></div>
+
+  <section class="card preview" id="preview" hidden>
+    <img id="pThumb" alt="">
+    <div class="p-main">
+      <div class="p-title" id="pTitle"></div>
+      <div class="p-meta" id="pMeta"></div>
+      <div class="opts">
+        <div class="seg" id="modeSeg">
+          <button data-m="video" class="on">Video</button><button data-m="audio">Audio only</button>
+        </div>
+        <label id="qRow">Quality <select id="oQual"></select></label>
+        <label id="cRow">Format <select id="oCont">
+          <option value="compat">MP4, plays everywhere</option>
+          <option value="best">MKV, best quality any codec</option>
+        </select></label>
+        <label id="aRow" hidden>Audio format <select id="oAudio">
+          <option value="mp3">MP3</option><option value="m4a">M4A (AAC)</option><option value="opus">Opus</option>
+        </select></label>
+      </div>
+      <div class="checks">
+        <label class="check"><input type="checkbox" id="oThumb"> Embed thumbnail</label>
+        <label class="check"><input type="checkbox" id="oMeta"> Embed title and artist</label>
+        <label class="check" id="subRow"><input type="checkbox" id="oSubs"> Embed English subtitles</label>
+        <label class="check plOnly" hidden><input type="checkbox" id="oFolder"> Save in a folder named after the playlist</label>
+        <label class="check plOnly" hidden><input type="checkbox" id="oNumber"> Number the files (01 - Title)</label>
+      </div>
+      <div class="p-note" id="pNote"></div>
+      <div class="p-act">
+        <button class="btn primary" id="btnDownload">Download</button>
+        <button class="btn" id="btnCancelInfo">Cancel</button>
+        <span class="hint" id="pSize"></span>
+        <button class="btn" id="btnPlaylist" hidden>This video is in a playlist, show it</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card plcard" id="plCard" hidden>
+    <div class="pl-bar">
+      <div class="pl-tools">
+        <button class="btn sm" id="plAll">Select all</button>
+        <button class="btn sm" id="plNone">Select none</button>
+        <input id="plFilter" placeholder="Filter by title" spellcheck="false" autocomplete="off">
+      </div>
+      <span class="hint" id="plCount"></span>
+    </div>
+    <div class="pl-list" id="plList"></div>
+  </section>
+
+  <section class="jobs">
+    <div class="jobs-head"><h2>Downloads</h2><button class="btn" id="btnClear">Clear finished</button></div>
+    <div id="jobList"></div>
+    <div class="empty" id="empty">Nothing downloaded yet.</div>
+  </section>
+</div>
+
+<dialog id="dlgSet">
+  <form method="dialog" class="dlg">
+    <h2>YouTube settings</h2>
+    <label>Save to
+      <div class="pick"><input id="sFolder" spellcheck="false"><button type="button" class="btn" id="sBrowse">Browse</button></div>
+    </label>
+    <label>Sign-in cookies <span class="hint">For age-restricted, members-only or "confirm you are not a bot" videos. Uses your browser's YouTube login.</span>
+      <select id="sCookies"><option value="">None</option><option value="chrome">Chrome</option><option value="edge">Edge</option><option value="firefox">Firefox</option><option value="brave">Brave</option></select>
+    </label>
+    <label>Downloads at once <select id="sPar"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
+    <div class="actions"><button type="button" class="btn" id="sCancel">Cancel</button><button type="button" class="btn primary" id="sSave">Save</button></div>
+  </form>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>
