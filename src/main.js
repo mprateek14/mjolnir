@@ -49,7 +49,7 @@ if (process.platform === 'win32' && !app.isPackaged) {
     }
     shell.writeShortcutLink(path.join(programs, 'Mjolnir.lnk'), 'create', {
       target: process.execPath, args: `"${app.getAppPath()}"`, cwd: app.getAppPath(),
-      icon: path.join(__dirname, 'ui', 'mjolnir.ico'), iconIndex: 0, appUserModelId: APP_ID, description: 'Mjolnir',
+      icon: path.join(__dirname, 'ui', 'mjolnir-app.ico'), iconIndex: 0, appUserModelId: APP_ID, description: 'Mjolnir',
     });
   } catch (e) { console.error('Could not write the dev shortcut:', e.message); }
 }
@@ -67,13 +67,13 @@ function createWindow() {
   win = new BrowserWindow({
     width: 1180, height: 720, minWidth: 860, minHeight: 520,
     backgroundColor: '#0f1115', title: 'Mjolnir',
-    icon: nativeImage.createFromPath(path.join(__dirname, 'ui', 'mjolnir.ico')),
+    icon: nativeImage.createFromPath(path.join(__dirname, 'ui', 'mjolnir-app.ico')),
     titleBarStyle: 'hidden',
     titleBarOverlay: { color: '#0f1115', symbolColor: '#c9ced8', height: 40 },
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true },
   });
   win.setMenuBarVisibility(false);
-  win.setIcon(nativeImage.createFromPath(path.join(__dirname, 'ui', 'mjolnir.ico')));
+  win.setIcon(nativeImage.createFromPath(path.join(__dirname, 'ui', 'mjolnir-app.ico')));
   win.loadFile(path.join(__dirname, 'ui', 'index.html'));
   win.on('close', (e) => {
     if (!quitting) { e.preventDefault(); win.hide(); }
@@ -151,7 +151,7 @@ function openCapture(job) {
   const w = new BrowserWindow({
     width: 540, height: 305, resizable: false, maximizable: false, minimizable: true, show: false,
     title: 'Mjolnir: file info', backgroundColor: '#0f1115', autoHideMenuBar: true,
-    icon: nativeImage.createFromPath(path.join(__dirname, 'ui', 'mjolnir.ico')),
+    icon: nativeImage.createFromPath(path.join(__dirname, 'ui', 'mjolnir-app.ico')),
     webPreferences: { preload: path.join(__dirname, 'capture', 'preload.js'), contextIsolation: true, sandbox: true },
   });
   w.setMenuBarVisibility(false);

@@ -12,6 +12,7 @@ let tools = [];
 let activeTool = null;
 let activity = {};   // downloads in progress per downloader, for the sidebar badges
 
+const EYE_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 const FOLDER_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
 const CATS = ['Compressed', 'Documents', 'Music', 'Video', 'Programs', 'Other'];
 
@@ -47,17 +48,23 @@ function renderSide() {
   const all = [...items.values()];
   const count = (f) => { const keep = filter; filter = f; const n = all.filter(matchesFilter).length; filter = keep; return n; };
   const entry = (t) => `<div class="nav ${activeTool === t.id ? 'on' : ''}" data-tool="${t.id}" title="${esc(t.error || t.description || '')}"><span>${esc(t.name)}</span>${t.error ? '<span class="n">!</span>' : activity[t.id] && activity[t.id].active ? `<span class="busy" title="${activity[t.id].active} running">${activity[t.id].active}</span>` : ''}</div>`;
+  const head = (title, group) => `<h4 class="sec"><span>${title}</span><button class="vis-btn" data-vis="${group}" title="Choose what to show" aria-label="Choose what to show in ${title}">${EYE_ICON}</button></h4>`;
+  // Downloaders: the header stays even when every entry is hidden, so the button to bring them back is still there.
   const section = (title, list) => (list.length ? `<h4>${title}</h4>` + list.map(entry).join('') : '');
+  const downloaders = tools.filter((t) => t.kind !== 'tool');
   const nav = (key, label) => `<div class="nav ${!activeTool && filter === key ? 'on' : ''}" data-f="${key}"><span>${label}</span><span class="n">${count(key)}</span></div>`;
   $('side').innerHTML =
     '<h4>Downloads</h4>' + nav('all', 'All') + nav('active', 'Active') + nav('unfinished', 'Unfinished') + nav('done', 'Completed') + nav('error', 'Failed') +
-    '<h4>Categories</h4>' + CATS.map((c) => nav('cat:' + c, c)).join('') +
+    head('Categories', 'categories') + CATS.filter((c) => shown('cat:' + c)).map((c) => nav('cat:' + c, c)).join('') +
     // Dedicated downloaders keep their own folders. These open them in File Explorer.
-    tools.filter((t) => t.folder).map((t) => `<div class="nav" data-folder="${t.id}" title="Open the ${esc(t.name)} folder"><span>${esc(t.name)}</span><span class="n open-ico">${FOLDER_ICON}</span></div>`).join('') +
+    tools.filter((t) => t.folder && shown('folder:' + t.id)).map((t) => `<div class="nav" data-folder="${t.id}" title="Open the ${esc(t.name)} folder"><span>${esc(t.name)}</span><span class="n open-ico">${FOLDER_ICON}</span></div>`).join('') +
     // Downloaders and tools are separate lists. Each entry opens its own page.
-    section('Downloaders', tools.filter((t) => t.kind !== 'tool')) + section('Tools', tools.filter((t) => t.kind === 'tool'));
+    (downloaders.length ? head('Downloaders', 'downloaders') + downloaders.filter((t) => shown('tool:' + t.id)).map(entry).join('') : '') +
+    section('Tools', tools.filter((t) => t.kind === 'tool'));
 }
 $('side').addEventListener('click', (e) => {
+  const v = e.target.closest('[data-vis]');
+  if (v) { openVisMenu(v); return; }
   const n = e.target.closest('.nav');
   if (!n) return;
   if (n.dataset.tool) { enterTool(n.dataset.tool); return; }
@@ -203,6 +210,65 @@ const SORTERS = {
   date: (a, b) => triedAt(a) - triedAt(b),
 };
 buildHead();
+
+// ---- show or hide sidebar items ----------------------------------------------------
+// Categories and Downloaders can be trimmed to what the user uses. Ids: cat:<name>, folder:<id>, tool:<id>.
+const hiddenItems = new Set(store.get('hidden', []));
+function shown(id) { return !hiddenItems.has(id); }
+function visItems(group) {
+  if (group === 'categories') return [...CATS.map((c) => ({ id: 'cat:' + c, label: c })), ...tools.filter((t) => t.folder).map((t) => ({ id: 'folder:' + t.id, label: t.name + ' folder' }))];
+  return tools.filter((t) => t.kind !== 'tool').map((t) => ({ id: 'tool:' + t.id, label: t.name }));
+}
+let visGroup = null;
+function closeVisMenu() {
+  $('visMenu').hidden = true;
+  visGroup = null;
+  for (const b of document.querySelectorAll('.vis-btn.on')) b.classList.remove('on');
+}
+function fillVisMenu() {
+  const rows = visItems(visGroup);
+  $('visMenu').innerHTML = `<div class="vhead">${visGroup === 'categories' ? 'Categories' : 'Downloaders'}</div>` +
+    rows.map((r) => `<label><input type="checkbox" data-id="${esc(r.id)}" ${shown(r.id) ? 'checked' : ''}> ${esc(r.label)}</label>`).join('') +
+    '<div class="vfoot"><button class="btn" data-all="1">Show all</button></div>';
+}
+function openVisMenu(btn) {
+  if (visGroup === btn.dataset.vis) { closeVisMenu(); return; }
+  closeVisMenu();
+  visGroup = btn.dataset.vis;
+  btn.classList.add('on');
+  fillVisMenu();
+  const m = $('visMenu');
+  m.hidden = false;
+  const r = btn.getBoundingClientRect();
+  m.style.left = Math.min(r.left, innerWidth - m.offsetWidth - 8) + 'px';
+  m.style.top = Math.min(r.bottom + 4, innerHeight - m.offsetHeight - 8) + 'px';
+}
+function applyVisibility() {
+  store.set('hidden', [...hiddenItems]);
+  // Do not leave the user looking at something that just disappeared from the list.
+  let changed = false;
+  if (filter.startsWith('cat:') && !shown(filter)) { filter = 'all'; changed = true; }
+  if (activeTool && (!shown('tool:' + activeTool) && tools.some((t) => t.id === activeTool && t.kind !== 'tool'))) leaveTool();
+  renderSide();
+  if (changed) renderList();
+  // renderSide rebuilt the buttons, so mark the one whose menu is open
+  const b = document.querySelector(`.vis-btn[data-vis="${visGroup}"]`);
+  if (b) b.classList.add('on');
+}
+$('visMenu').addEventListener('change', (e) => {
+  const id = e.target.dataset && e.target.dataset.id;
+  if (!id) return;
+  if (e.target.checked) hiddenItems.delete(id); else hiddenItems.add(id);
+  applyVisibility();
+});
+$('visMenu').addEventListener('click', (e) => {
+  if (!e.target.closest('[data-all]')) return;
+  for (const r of visItems(visGroup)) hiddenItems.delete(r.id);
+  fillVisMenu();
+  applyVisibility();
+});
+document.addEventListener('mousedown', (e) => { if (visGroup && !e.target.closest('#visMenu, .vis-btn')) closeVisMenu(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && visGroup) closeVisMenu(); });
 
 function paintRow(el, d) {
   const pct = d.status === 'completed' ? 100 : d.chunks && d.chunks[1] ? (d.chunks[0] / d.chunks[1]) * 100 : d.size > 0 ? Math.min(100, (d.downloaded / d.size) * 100) : 0;

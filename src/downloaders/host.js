@@ -108,7 +108,7 @@ class DownloaderHost {
       const w = new BrowserWindow({
         width: cap.width, height: cap.height, resizable: false, maximizable: false, show: false, autoHideMenuBar: true,
         title: `Mjolnir: ${en.mod.name}`, backgroundColor: '#0f1115',
-        icon: nativeImage.createFromPath(path.join(__dirname, '..', 'ui', 'mjolnir.ico')),
+        icon: nativeImage.createFromPath(path.join(__dirname, '..', 'ui', 'mjolnir-app.ico')),
         webPreferences: {
           preload: path.join(__dirname, 'preload.js'),
           additionalArguments: [`--dl-id=${en.mod.id}`, `--cap-url=${encodeURIComponent(clean)}`],

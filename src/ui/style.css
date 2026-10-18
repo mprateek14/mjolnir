@@ -33,7 +33,7 @@ kbd { background: var(--raised); border: 1px solid var(--line); border-radius: 4
 .toolbar-row { display: flex; align-items: center; gap: 14px; padding: 0 14px; border-bottom: 1px solid var(--line); border-top: 1px solid var(--line); }
 .titlebar > * { -webkit-app-region: no-drag; }
 .brand { -webkit-app-region: drag; font-weight: 600; letter-spacing: .2px; display: flex; align-items: center; gap: 8px; min-width: 96px; }
-.logo { width: 22px; height: 22px; object-fit: contain; flex: none; }
+.logo { width: 30px; height: 30px; object-fit: contain; flex: none; }
 .toolbar { display: flex; align-items: center; gap: 4px; }
 .sep { width: 1px; height: 18px; background: var(--line); margin: 0 6px; }
 .search { margin-left: auto; }
@@ -51,6 +51,16 @@ kbd { background: var(--raised); border: 1px solid var(--line); border-radius: 4
 .side { border-right: 1px solid var(--line); padding: 10px 8px; overflow-y: auto; background: var(--surface); }
 .side h4 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); margin: 14px 8px 6px; }
 .side h4:first-child { margin-top: 2px; }
+.side h4.sec { display: flex; align-items: center; justify-content: space-between; }
+.vis-btn { display: inline-grid; place-items: center; width: 22px; height: 18px; margin: -2px -2px -2px 0; padding: 0; border: 0; border-radius: 5px; background: transparent; color: var(--faint); cursor: pointer; opacity: .55; }
+.side h4.sec:hover .vis-btn, .vis-btn.on { opacity: 1; }
+.vis-btn:hover, .vis-btn.on { background: var(--raised); color: var(--text); }
+.vismenu { min-width: 200px; max-height: 70vh; overflow-y: auto; user-select: none; }
+.vismenu .vhead { padding: 4px 10px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); cursor: default; }
+.vismenu .vhead:hover { background: transparent; }
+.vismenu label { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 5px; cursor: pointer; color: var(--text); }
+.vismenu label:hover { background: var(--accent-dim); }
+.vismenu .vfoot { display: flex; gap: 4px; padding: 6px 6px 2px; border-top: 1px solid var(--line); margin-top: 4px; }
 .nav { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; border-radius: 6px; cursor: pointer; color: var(--dim); }
 .nav:hover { background: var(--raised); color: var(--text); }
 .nav.on { background: var(--accent-dim); color: #fff; }
