@@ -8,6 +8,7 @@ const { Manager } = require('./engine/manager');
 const { categoryOf } = require('./engine/util');
 const { DownloaderHost } = require('./downloaders/host');
 const { PhoneLink } = require('./phonelink/server');
+const updates = require('./updates');
 
 const PORT = 24680;
 let phone = null;
@@ -280,6 +281,10 @@ function ipc() {
     return r.canceled ? null : r.filePaths[0];
   });
   h('clipboard', () => clipboard.readText());
+  h('update:check', () => checkForUpdate(true));
+  h('update:version', () => appVersion());
+  h('update:skip', (version) => { mgr.setSettings({ skippedVersion: String(version || '') }); });
+  h('update:open', (url) => { if (updates.isReleaseUrl(url)) return shell.openExternal(url); });
   // Batch download: one link or ticker per line, all of one kind. Returns one result per line.
   // Where each kind saves unless the user picks another place.
   const batchDefaults = async () => {
@@ -341,6 +346,27 @@ function ipc() {
   h('phone:revoke', (id) => { phone.revoke(id); return phone.info(); });
 }
 
+// Update check. It only tells the user; downloading and installing stay their choice (see src/updates.js).
+// MJOLNIR_TEST_VERSION lets a test pretend to be an older version.
+const appVersion = () => process.env.MJOLNIR_TEST_VERSION || app.getVersion();
+async function checkForUpdate(manual) {
+  const current = appVersion();
+  try {
+    const r = await updates.check(current);
+    const skipped = r.newer && mgr.settings.skippedVersion === r.latest.version;
+    // A skipped version stays quiet in the background, but a manual check still reports it.
+    if (r.newer && (manual || !skipped)) send('update-available', { ...r.latest, current });
+    return { ok: true, current, newer: r.newer, latest: r.latest, skipped };
+  } catch (e) {
+    return { ok: false, current, error: e.message };
+  }
+}
+function startUpdateChecks() {
+  const tick = () => { if (mgr.settings.updateCheck !== false) checkForUpdate(false); };
+  setTimeout(tick, 20 * 1000);                    // not while the window is still opening
+  setInterval(tick, 6 * 60 * 60 * 1000);          // and every few hours if the app stays open
+}
+
 app.whenReady().then(async () => {
   mgr = new Manager({ dataDir: app.getPath('userData'), downloadDir: baseFolder });
   await mgr.init();
@@ -351,6 +377,7 @@ app.whenReady().then(async () => {
   startPhoneLink();
   createTray();
   startBridge();
+  startUpdateChecks();
   watchClipboard();
   mgr.on('progress', (p) => send('progress', p));
   mgr.on('added', (d) => send('added', d));

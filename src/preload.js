@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld('sg', {
   pickFolder: call('pickFolder'), clipboard: call('clipboard'),
   dlList: call('dl:list'), dlShow: call('dl:show'), dlHide: call('dl:hide'), dlBounds: call('dl:bounds'), dlOpenFolder: call('dl:openFolder'),
   phoneInfo: call('phone:info'), phoneEnable: call('phone:enable'), phonePair: call('phone:pair'), phoneRevoke: call('phone:revoke'),
+  updateCheck: call('update:check'), updateVersion: call('update:version'), updateSkip: call('update:skip'), updateOpen: call('update:open'),
   batchRun: call('batch:run'), batchDefaults: call('batch:defaults'), batchFolderName: call('batch:folderName'),
   getSettings: call('settings:get'), setSettings: call('settings:set'),
   on,

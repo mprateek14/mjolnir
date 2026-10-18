@@ -790,6 +790,30 @@ sg.on('batch-progress', ({ done, total }) => {
   $('bInfo').innerHTML = `<span>Adding ${done} of ${total}…</span>`;
 });
 
+// ---- updates ----------------------------------------------------------------------
+// The app only tells you; you download and install the new version yourself.
+let updateNotice = null;
+function showUpdate(u) {
+  updateNotice = u;
+  $('updateText').textContent = `Mjolnir ${u.version} is available. You have ${u.current}.`;
+  $('updateBar').hidden = false;
+}
+sg.on('update-available', showUpdate);
+$('updateGo').onclick = () => { if (updateNotice) sg.updateOpen(updateNotice.url); };
+$('updateSkip').onclick = () => { if (updateNotice) sg.updateSkip(updateNotice.version); $('updateBar').hidden = true; };
+$('updateClose').onclick = () => { $('updateBar').hidden = true; };
+$('uCheck').onclick = async () => {
+  const b = $('uCheck');
+  b.disabled = true;
+  $('uMsg').textContent = 'Checking…';
+  const r = await sg.updateCheck();
+  b.disabled = false;
+  if (!r.ok) { $('uMsg').textContent = r.error; return; }
+  if (!r.latest) $('uMsg').textContent = 'No releases are published yet.';
+  else if (!r.newer) $('uMsg').textContent = `You are up to date (${r.current}).`;
+  else $('uMsg').textContent = r.skipped ? `${r.latest.version} is available. You chose to skip it.` : `${r.latest.version} is available. See the bar at the top.`;
+};
+
 $('btnAdd').onclick = () => openAdd();
 $('addCancel').onclick = () => dlgAdd.close();
 $('addGo').onclick = () => submitAdd(true);
@@ -810,6 +834,9 @@ function openSettings(focusId) {
   $('sSched').checked = settings.schedule.enabled;
   $('sStart').value = settings.schedule.start;
   $('sStop').value = settings.schedule.stop;
+  $('sUpd').checked = settings.updateCheck !== false;
+  $('uMsg').textContent = '';
+  sg.updateVersion().then((v) => { $('uVersion').textContent = `Mjolnir ${v}`; });
   $('sDlSet').hidden = !allDownloaders().length;
   $('sDownloaders').innerHTML = allDownloaders().map((t) => `<label class="check"><input type="checkbox" data-dl="${esc(t.id)}" ${dlEnabled(t.id) ? 'checked' : ''}> ${esc(t.name)}</label>`).join('');
   if (!dlgSet.open) dlgSet.showModal();
@@ -919,7 +946,7 @@ $('sSave').onclick = async () => {
   settings = await sg.setSettings({
     downloadDir: $('sDir').value.trim(), connections: Number($('sConn').value), maxConcurrent: Number($('sConc').value),
     autoRetry: Number($('sRetry').value), speedLimit: Math.max(0, Number($('sLimitIn').value) || 0) * 1024,
-    sortIntoFolders: $('sSort').checked, clipboardWatch: $('sClip').checked,
+    sortIntoFolders: $('sSort').checked, clipboardWatch: $('sClip').checked, updateCheck: $('sUpd').checked,
     schedule: { enabled: $('sSched').checked, start: $('sStart').value || '02:00', stop: $('sStop').value || '06:00' },
     // Only touch the list when the section was shown, so a failed downloader list never turns everything off.
     ...($('sDlSet').hidden ? {} : { disabledDownloaders: [...$('sDownloaders').querySelectorAll('input[data-dl]')].filter((c) => !c.checked).map((c) => c.dataset.dl) }),

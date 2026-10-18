@@ -9,6 +9,7 @@ A download manager for Windows, built with Electron. It downloads files over sev
 - Pause and resume, even after a restart. Resuming checks that the file on the server did not change.
 - Queue with a limit on how many run at once, automatic retries, a speed limit for everything or for one download, and a scheduler.
 - HLS (`.m3u8`) and DASH (`.mpd`) streams, including encrypted HLS and separate audio tracks. Chunks download in parallel and are joined with FFmpeg.
+- Tells you when a newer version is published on GitHub, with a link to download it. You can turn the check off in Settings.
 - A list you can sort by name, size, status or date, and columns you can resize. The date is the last time Mjolnir tried the download, whatever happened.
 
 **YouTube downloader** (separate tab, uses [yt-dlp](https://github.com/yt-dlp/yt-dlp))

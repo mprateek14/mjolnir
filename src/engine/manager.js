@@ -22,6 +22,8 @@ const DEFAULTS = {
   extensionToken: '',
   extensionEnabled: true,   // take over downloads the browser starts by itself
   extensionMinMB: 2,        // smaller files stay with the browser
+  updateCheck: true,        // ask GitHub now and then whether a newer version exists
+  skippedVersion: '',       // a version the user chose not to hear about again
   disabledDownloaders: [],  // ids of dedicated downloaders the user turned off (all on by default)
 };
 

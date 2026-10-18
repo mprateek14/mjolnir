@@ -37,6 +37,14 @@
   <nav class="side" id="side"></nav>
 
   <main class="main">
+    <div class="updatebar" id="updateBar" hidden>
+      <span class="updot"></span>
+      <span id="updateText"></span>
+      <span class="grow"></span>
+      <button class="btn primary" id="updateGo">See what's new and download</button>
+      <button class="btn" id="updateSkip">Skip this version</button>
+      <button class="btn" id="updateClose" title="Hide for now" aria-label="Hide for now">✕</button>
+    </div>
     <div class="table" id="table">
       <div class="cols head" id="head"></div>
       <div class="list" id="list"></div>
@@ -151,6 +159,12 @@
     </div>
     <label class="check"><input type="checkbox" id="sSort"> Sort finished files into category folders</label>
     <label class="check"><input type="checkbox" id="sClip"> Offer to download links copied to the clipboard</label>
+    <fieldset>
+      <legend>Updates</legend>
+      <div class="hint" id="uVersion"></div>
+      <label class="check"><input type="checkbox" id="sUpd"> Check for updates automatically</label>
+      <div class="row"><button type="button" class="btn" id="uCheck">Check now</button><span class="hint" id="uMsg"></span></div>
+    </fieldset>
     <fieldset id="sDlSet">
       <legend>Downloaders</legend>
       <div class="hint">Turned-off downloaders leave the sidebar and Add Batch, and stop taking links from your phone and the browser. Jobs already running keep going.</div>
