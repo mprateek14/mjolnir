@@ -24,6 +24,11 @@ class DownloaderHost {
       }
     }
     this.register();
+    // A few modules do their work in the background and have to run from the start (the Clipboard tool).
+    for (const [id, en] of this.entries) {
+      if (en.error || !en.mod.autostart) continue;
+      try { this.instance(id); } catch (e) { en.error = e.message; console.error(`${id} did not start:`, e.message); }
+    }
     this.lastActivity = '';
     this.activityTimer = setInterval(() => this.pollActivity(), 1500);
     if (this.activityTimer.unref) this.activityTimer.unref();

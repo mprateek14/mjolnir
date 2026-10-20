@@ -38,6 +38,7 @@ function dur(s) {
 const STATUS = { downloading: 'Downloading', queued: 'Queued', paused: 'Paused', completed: 'Complete', error: 'Error', verifying: 'Verifying', merging: 'Merging' };
 
 // ---- sidebar ---------------------------------------------------------------------
+const FILTER_ID = (key) => (key.startsWith('cat:') ? key : 'f:' + key);
 function matchesFilter(d) {
   if (filter === 'all') return true;
   if (filter === 'active') return d.status === 'downloading' || d.status === 'queued' || d.status === 'verifying';
@@ -56,9 +57,9 @@ function renderSide() {
   // Downloaders: the header stays even when every entry is hidden, so the button to bring them back is still there.
   const section = (title, list) => (list.length ? `<h4>${title}</h4>` + list.map(entry).join('') : '');
   const downloaders = enabledDownloaders();
-  const nav = (key, label) => `<div class="nav ${!activeTool && filter === key ? 'on' : ''}" data-f="${key}"><span>${label}</span><span class="n">${count(key)}</span></div>`;
+  const nav = (key, label) => (shown(FILTER_ID(key)) ? `<div class="nav ${!activeTool && filter === key ? 'on' : ''}" data-f="${key}"><span>${label}</span><span class="n">${count(key)}</span></div>` : '');
   $('side').innerHTML =
-    '<h4>Downloads</h4>' + nav('all', 'All') + nav('active', 'Active') + nav('unfinished', 'Unfinished') + nav('done', 'Completed') + nav('error', 'Failed') +
+    head('Downloads', 'downloads') + nav('all', 'All') + nav('active', 'Active') + nav('unfinished', 'Unfinished') + nav('done', 'Completed') + nav('error', 'Failed') +
     head('Categories', 'categories') + CATS.filter((c) => shown('cat:' + c)).map((c) => nav('cat:' + c, c)).join('') +
     // Dedicated downloaders keep their own folders. These open them in File Explorer.
     tools.filter((t) => t.folder && shown('folder:' + t.id)).map((t) => `<div class="nav" data-folder="${t.id}" title="Open the ${esc(t.name)} folder"><span>${esc(t.name)}</span><span class="n open-ico">${FOLDER_ICON}</span></div>`).join('') +
@@ -215,11 +216,42 @@ const SORTERS = {
 };
 buildHead();
 
+// ---- sidebar width: drag its right edge, double-click the edge to reset ----------------
+const SIDE_DEFAULT = 188, SIDE_MIN = 150, SIDE_MAX = 420;
+const sideLimit = () => Math.max(SIDE_MIN, Math.min(SIDE_MAX, innerWidth - 520));
+let sideW = Math.max(SIDE_MIN, Math.min(SIDE_MAX, Number(store.get('sidew', SIDE_DEFAULT)) || SIDE_DEFAULT));
+function applySide() { document.querySelector('.shell').style.setProperty('--side', Math.min(sideW, sideLimit()) + 'px'); }
+applySide();
+addEventListener('resize', applySide);
+$('sideGrip').addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  const startX = e.clientX, startW = Math.min(sideW, sideLimit());
+  $('sideGrip').classList.add('on');
+  document.body.classList.add('resizing');
+  // Listen on the window, not the grip: the grip moves with the edge.
+  const move = (ev) => { sideW = Math.max(SIDE_MIN, Math.min(sideLimit(), Math.round(startW + ev.clientX - startX))); applySide(); };
+  const up = () => {
+    $('sideGrip').classList.remove('on');
+    document.body.classList.remove('resizing');
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', up);
+    window.removeEventListener('pointercancel', up);
+    window.removeEventListener('blur', up);
+    store.set('sidew', sideW);
+  };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+  window.addEventListener('pointercancel', up);
+  window.addEventListener('blur', up);
+});
+$('sideGrip').addEventListener('dblclick', () => { sideW = SIDE_DEFAULT; applySide(); store.set('sidew', sideW); });
+
 // ---- show or hide sidebar items ----------------------------------------------------
 // Categories and Downloaders can be trimmed to what the user uses. Ids: cat:<name>, folder:<id>, tool:<id>.
 const hiddenItems = new Set(store.get('hidden', []));
 function shown(id) { return !hiddenItems.has(id); }
 function visItems(group) {
+  if (group === 'downloads') return [['all', 'All'], ['active', 'Active'], ['unfinished', 'Unfinished'], ['done', 'Completed'], ['error', 'Failed']].map(([k, l]) => ({ id: FILTER_ID(k), label: l }));
   if (group === 'categories') return [...CATS.map((c) => ({ id: 'cat:' + c, label: c })), ...tools.filter((t) => t.folder).map((t) => ({ id: 'folder:' + t.id, label: t.name + ' folder' }))];
   return enabledDownloaders().map((t) => ({ id: 'tool:' + t.id, label: t.name }));
 }
@@ -231,7 +263,7 @@ function closeVisMenu() {
 }
 function fillVisMenu() {
   const rows = visItems(visGroup);
-  $('visMenu').innerHTML = `<div class="vhead">${visGroup === 'categories' ? 'Categories' : 'Downloaders'}</div>` +
+  $('visMenu').innerHTML = `<div class="vhead">${{ downloads: 'Downloads', categories: 'Categories', downloaders: 'Downloaders' }[visGroup]}</div>` +
     rows.map((r) => `<label><input type="checkbox" data-id="${esc(r.id)}" ${shown(r.id) ? 'checked' : ''}> ${esc(r.label)}</label>`).join('') +
     '<div class="vfoot"><button class="btn" data-all="1">Show all</button></div>';
 }
@@ -251,7 +283,7 @@ function applyVisibility() {
   store.set('hidden', [...hiddenItems]);
   // Do not leave the user looking at something that just disappeared from the list.
   let changed = false;
-  if (filter.startsWith('cat:') && !shown(filter)) { filter = 'all'; changed = true; }
+  if (!shown(FILTER_ID(filter)) && filter !== 'all') { filter = 'all'; changed = true; }
   if (activeTool && (!shown('tool:' + activeTool) && tools.some((t) => t.id === activeTool && t.kind !== 'tool'))) leaveTool();
   renderSide();
   if (changed) renderList();
@@ -496,8 +528,16 @@ function fillSelect(sel, from, to, cur) {
 }
 
 let lastProbe = null;
+// This box takes one link. Anything extra is dropped, and the user is told where several links go.
+const ONE_ONLY = 'This box takes one link at a time. Use Add Batch to add several.';
+function firstLink(text) {
+  const parts = String(text || '').split(/\s+/).map((s) => s.trim()).filter(Boolean);
+  return { link: parts[0] || '', extra: parts.length > 1 };
+}
 async function openAdd(prefill = '', hdrs = {}) {
   leaveTool();
+  const first = firstLink(prefill);
+  prefill = first.link;
   $('addUrls').value = prefill;
   $('probe').innerHTML = '';
   $('qualRow').hidden = true;
@@ -511,10 +551,24 @@ async function openAdd(prefill = '', hdrs = {}) {
     const clip = (await sg.clipboard()).trim();
     if (/^https?:\/\/\S+$/i.test(clip)) $('addUrls').value = clip;
   }
+  setAddButtons(true);
   if (!dlgAdd.open) dlgAdd.showModal();
   $('addUrls').focus(); $('addUrls').select();
-  runProbe();
+  runProbe().then(() => { if (first.extra) $('probe').insertAdjacentHTML('afterbegin', `<span class="bad">Only the first link was used. ${ONE_ONLY}</span>`); });
 }
+const setAddButtons = (on) => { $('addGo').disabled = !on; $('addLater').disabled = !on; };
+// Several links pasted in one go: keep the first, say so.
+$('addUrls').addEventListener('paste', (e) => {
+  const text = (e.clipboardData || window.clipboardData).getData('text');
+  const { link, extra } = firstLink(text);
+  if (!extra) return;
+  e.preventDefault();
+  $('addUrls').value = link;
+  clearTimeout(probeTimer);
+  runProbe().then(() => { $('probe').insertAdjacentHTML('afterbegin', `<span class="bad">Only the first link was used. ${ONE_ONLY}</span>`); });
+});
+// Enter adds the download; the form would otherwise close the dialog.
+$('addUrls').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (!$('addGo').disabled) $('addGo').click(); } });
 function urlsIn() { return $('addUrls').value.split(/\s+/).map((s) => s.trim()).filter(Boolean); }
 $('addUrls').addEventListener('input', () => { clearTimeout(probeTimer); probeTimer = setTimeout(runProbe, 500); });
 async function runProbe() {
@@ -522,7 +576,9 @@ async function runProbe() {
   const box = $('probe');
   lastProbe = null;
   $('qualRow').hidden = true;
-  if (urls.length !== 1) { box.innerHTML = urls.length > 1 ? `<span>${urls.length} links</span>` : ''; return; }
+  setAddButtons(urls.length <= 1);
+  if (urls.length > 1) { box.innerHTML = `<span class="bad">${ONE_ONLY}</span>`; return; }
+  if (urls.length === 0) { box.innerHTML = ''; return; }
   box.innerHTML = '<span>Checking link…</span>';
   const r = await sg.probe(urls[0], headersFromForm());
   if (urlsIn()[0] !== urls[0]) return;
@@ -548,7 +604,7 @@ function headersFromForm() {
 }
 async function submitAdd(start) {
   const urls = urlsIn();
-  if (!urls.length) return;
+  if (urls.length !== 1) return;
   const base = { dir: $('addDir').value.trim() !== settings.downloadDir ? $('addDir').value.trim() : undefined, connections: Number($('addConn').value), headers: headersFromForm(), start };
   let batch = urls.map((url) => ({ ...base, url, ...(urls.length === 1 ? { filename: $('addName').value.trim(), checksum: $('addSum').value.trim() } : {}) }));
   if (urls.length === 1 && lastProbe && (lastProbe.type === 'hls' || lastProbe.type === 'dash')) {
@@ -814,6 +870,14 @@ $('uCheck').onclick = async () => {
   else $('uMsg').textContent = r.skipped ? `${r.latest.version} is available. You chose to skip it.` : `${r.latest.version} is available. See the bar at the top.`;
 };
 
+// ---- how to use ---------------------------------------------------------------------
+$('btnHelp').onclick = () => { leaveTool(); $('helpBody').scrollTop = 0; $('dlgHelp').showModal(); };
+$('helpClose').onclick = () => $('dlgHelp').close();
+$('helpChips').onclick = (e) => {
+  const to = e.target.dataset && e.target.dataset.to;
+  if (to) $(to).scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
 $('btnAdd').onclick = () => openAdd();
 $('addCancel').onclick = () => dlgAdd.close();
 $('addGo').onclick = () => submitAdd(true);
@@ -971,7 +1035,7 @@ addEventListener('dragover', (e) => e.preventDefault());
 addEventListener('drop', (e) => {
   e.preventDefault();
   const t = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain');
-  if (/^https?:\/\//i.test(t)) openAdd(t.trim());
+  if (/^https?:\/\//i.test(t)) openAdd(t.trim());   // openAdd keeps only the first link
 });
 addEventListener('keydown', (e) => {
   if (e.ctrlKey && e.key.toLowerCase() === 'n') { e.preventDefault(); openAdd(); }

@@ -27,6 +27,7 @@ A download manager for Windows, built with Electron. It downloads files over sev
 
 **Tools**
 - Audio extractor: pulls the audio out of a video without re-encoding. It copies the stream, so the format stays whatever it was in the video.
+- Clipboard: remembers the last 25 things you copied, text and pictures (GIFs included), and puts any of them back with a click. Items over 10 MB are skipped, and copies from password managers are never kept.
 
 **Phone link**
 - Turn it on, scan a QR code, and send links from your phone over Wi-Fi. YouTube and screener.in links go to their own tabs and show progress there.

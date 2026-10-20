@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: file:">
+<title>Clipboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <div>
+      <h1>Clipboard</h1>
+      <p class="sub" id="sub">Everything you copy while Mjolnir is open, text and pictures.</p>
+    </div>
+    <div class="top-act">
+      <button class="btn" id="btnPause">Pause</button>
+      <button class="btn" id="btnClear">Clear all</button>
+    </div>
+  </header>
+
+  <div class="bar-row">
+    <input id="search" placeholder="Search your text" spellcheck="false" autocomplete="off">
+    <span class="count" id="count"></span>
+  </div>
+  <div class="note" id="note" hidden></div>
+  <div class="privacy">Copies are saved on this computer, in Mjolnir's data folder, until they drop off the list. Anything a password manager marks as private is not kept. For anything else private, press Pause first.</div>
+  <div class="paused" id="paused" hidden>Recording is paused. New copies are not being kept.</div>
+
+  <div id="list"></div>
+  <div class="empty" id="empty">
+    <b>Nothing here yet.</b>
+    <span>Copy some text or a picture, and it shows up here. Click any item to copy it again.</span>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

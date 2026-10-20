@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "test:live": "node test/ytdlp.live.test.js",
-    "test": "node test/engine.test.js && node test/hls.test.js && node test/dash.test.js && node test/screener.test.js && node test/youtube.test.js && node test/phonelink.test.js && node test/audio-extractor.test.js && node test/updates.test.js && node test/bridgeauth.test.js",
+    "test": "node test/engine.test.js && node test/hls.test.js && node test/dash.test.js && node test/screener.test.js && node test/youtube.test.js && node test/phonelink.test.js && node test/audio-extractor.test.js && node test/updates.test.js && node test/bridgeauth.test.js && node test/clipboard.test.js",
     "dist": "electron-builder --win --x64"
   },
   "devDependencies": {

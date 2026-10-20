@@ -16,6 +16,7 @@
     <button class="icon-btn" id="btnSched" title="Scheduler" aria-label="Scheduler"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button>
     -->
     <button class="icon-btn" id="btnExt" title="Browser extension" aria-label="Browser extension"><svg viewBox="0 0 24 24"><path d="M9 3h6v4h2a2 2 0 0 1 2 2v3h-3a2 2 0 1 0 0 4h3v3a2 2 0 0 1-2 2h-3v-3a2 2 0 1 0-4 0v3H7a2 2 0 0 1-2-2v-3h3a2 2 0 1 0 0-4H5V9a2 2 0 0 1 2-2h2z"/></svg></button>
+    <button class="icon-btn" id="btnHelp" title="How to use Mjolnir" aria-label="How to use Mjolnir"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1.9-1.1 1.8"/><path d="M12 17h.01"/></svg></button>
     <button class="icon-btn" id="btnSettings" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
   </div>
 </header>
@@ -35,6 +36,7 @@
 
 <div class="shell">
   <nav class="side" id="side"></nav>
+  <div class="side-grip" id="sideGrip" title="Drag to change the width, double-click to reset"></div>
 
   <main class="main">
     <div class="updatebar" id="updateBar" hidden>
@@ -83,9 +85,9 @@
 
 <dialog id="dlgAdd">
   <form method="dialog" class="dlg" id="addForm">
-    <h2>Add downloads</h2>
-    <label>Links <span class="hint">one per line</span>
-      <textarea id="addUrls" rows="4" placeholder="https://example.com/file.zip" spellcheck="false"></textarea>
+    <h2>Add a download</h2>
+    <label>Link <span class="hint">one at a time. For several, use Add Batch.</span>
+      <input id="addUrls" placeholder="https://example.com/file.zip" spellcheck="false" autocomplete="off">
     </label>
     <div class="probe" id="probe"></div>
     <label id="qualRow" hidden>Quality <select id="addQual"></select></label>
@@ -102,7 +104,7 @@
       <label>Referrer <input id="addRef" spellcheck="false"></label>
       <label>Cookie <input id="addCookie" spellcheck="false"></label>
       <label>Checksum <span class="hint">sha256 hash, or algo:hash</span> <input id="addSum" spellcheck="false"></label>
-      <label>Save as <span class="hint">single link only</span> <input id="addName" spellcheck="false"></label>
+      <label>Save as <input id="addName" spellcheck="false"></label>
     </details>
     <div class="actions">
       <button type="button" class="btn" id="addCancel">Cancel</button>
@@ -110,6 +112,112 @@
       <button type="button" class="btn primary" id="addGo">Download</button>
     </div>
   </form>
+</dialog>
+
+<dialog id="dlgHelp">
+  <div class="dlg help">
+    <div class="help-head">
+      <h2>How to use Mjolnir</h2>
+      <button type="button" class="btn" id="helpClose">Done</button>
+    </div>
+    <div class="chips" id="helpChips">
+      <button type="button" data-to="help1">Downloading files</button>
+      <button type="button" data-to="help2">YouTube and Screener</button>
+      <button type="button" data-to="help3">Browser extension</button>
+      <button type="button" data-to="help4">Tools</button>
+    </div>
+    <div class="help-body" id="helpBody">
+
+      <section id="help1">
+        <h3><span>1</span> Downloading files</h3>
+        <p>Use this for any file that has a web link: a program, a video file, a document, a picture, a zip.</p>
+        <ol>
+          <li>Copy the link of the file.</li>
+          <li>Click <b>+ Add URL</b> at the top left. If you just copied a link, it is already pasted in. If not, paste it in the box.</li>
+          <li>Mjolnir shows the file's name and size. To save somewhere else, click <b>Browse</b>. Otherwise it goes into your Downloads folder, in a folder called Mjolnir.</li>
+          <li>Click <b>Download</b>. The file shows up in the list, with a bar that fills as it downloads.</li>
+        </ol>
+        <h4>Good to know</h4>
+        <ul>
+          <li><b>Pause and Resume.</b> Click a download, then press Pause or Resume at the top. A paused download carries on from where it stopped, even after you close Mjolnir or switch off the computer.</li>
+          <li><b>Many files at once.</b> Click <b>Add Batch</b> and paste one link on each line.</li>
+          <li><b>More choices.</b> Right-click a download to open the file, show it in its folder, copy its link or remove it.</li>
+          <li><b>Finding things.</b> The list on the left shows only the unfinished, finished or failed downloads, or one kind of file such as Video or Documents. The search box at the top right finds a download by its name.</li>
+          <li><b>If a download fails,</b> Mjolnir tries again a few times by itself. If it still stops, click it and press Resume.</li>
+          <li><b>Closing the window</b> does not stop your downloads. Mjolnir keeps working from the small icon near the clock. To close it completely, right-click that icon and choose Quit.</li>
+        </ul>
+      </section>
+
+      <section id="help2">
+        <h3><span>2</span> YouTube and Screener</h3>
+        <p>These two have their own pages. You find them in the left list under <b>Downloaders</b>. If you do not see them, open Settings (the gear at the top right) and tick them under Downloaders.</p>
+        <h4>YouTube</h4>
+        <ol>
+          <li>Click <b>YouTube</b> in the left list.</li>
+          <li>The first time only, click <b>Download engine</b>. It is a small helper (~18 MB) and it downloads just once.</li>
+          <li>Paste the video link and click <b>Get video</b>.</li>
+          <li>Choose <b>Video</b> or <b>Audio only</b>. For a video, pick the quality and the type. MP4 plays everywhere. MKV keeps the best quality.</li>
+          <li>Click <b>Download</b>. You can watch the progress on the same page. The video is saved in the YouTube folder.</li>
+        </ol>
+        <p>A link to a whole playlist shows a list of videos with tick boxes. Tick the ones you want and click Download.</p>
+        <h4>Screener</h4>
+        <ol>
+          <li>Click <b>Screener</b> in the left list.</li>
+          <li>Type the company's short name, for example AVANTEL, or paste its screener.in link. Then click <b>Find</b>.</li>
+          <li>Mjolnir shows how many annual reports, credit ratings and earnings call (concall) papers it found. Click <b>Download</b>.</li>
+          <li>The files are saved in the Screener folder, with one folder for each company.</li>
+        </ol>
+        <h4>Good to know</h4>
+        <ul>
+          <li>To open their folders quickly, click <b>YouTube</b> or <b>Screener</b> under Categories in the left list.</li>
+          <li>For many at once, click <b>Add Batch</b>, pick the YouTube or Screener tab, and put one video link or company on each line. Playlists are not allowed in a batch.</li>
+        </ul>
+      </section>
+
+      <section id="help3">
+        <h3><span>3</span> The browser extension</h3>
+        <p>The extension connects Chrome or Edge to Mjolnir. Your browser's downloads then come to Mjolnir, and you can send YouTube videos and company pages with one click. Mjolnir must be running for it to work.</p>
+        <h4>Setting it up, once</h4>
+        <ol>
+          <li>Click the <b>puzzle icon</b> at the top of Mjolnir. It lists the steps and has a <b>Show me the folder</b> button.</li>
+          <li>In your browser, open the extensions page. Type <b>chrome://extensions</b> in the address bar (<b>edge://extensions</b> in Edge) and press Enter.</li>
+          <li>Switch on <b>Developer mode</b>, then click <b>Load unpacked</b> and pick the extension folder.</li>
+          <li>Click the Mjolnir icon in your browser's toolbar. It says <b>Connected</b> when everything works. If you cannot see the icon, click the puzzle piece in your browser and pin Mjolnir.</li>
+        </ol>
+        <h4>Using it</h4>
+        <ul>
+          <li><b>Normal downloads.</b> When you download a file in your browser, a small Mjolnir window opens. Check the name and the folder, then click Start download.</li>
+          <li><b>YouTube and Screener.</b> On a YouTube video or a screener.in company page, click the Mjolnir icon in the toolbar, then <b>Download from this page</b>.</li>
+          <li><b>Right-click.</b> Right-click a link, a picture or a video and choose <b>Download with Mjolnir</b>.</li>
+          <li><b>Settings.</b> The puzzle icon in Mjolnir lets you switch off the automatic catching of browser downloads, or leave small files to the browser.</li>
+        </ul>
+      </section>
+
+      <section id="help4">
+        <h3><span>4</span> Tools</h3>
+        <p>Tools are small helpers inside Mjolnir. For now there are two.</p>
+        <h4>Audio extractor</h4>
+        <p>It takes the sound out of a video and saves it as an audio file. It does not change the sound in any way, so the quality stays the same, and it finishes in seconds.</p>
+        <ol>
+          <li>Click <b>Audio extractor</b> under Tools in the left list.</li>
+          <li>Drop your video files on the page, or click <b>Choose files</b>.</li>
+          <li>If a video has more than one sound track, for example two languages, tick the ones you want.</li>
+          <li>Choose where to save: next to the video, or in a folder you pick.</li>
+          <li>Click <b>Extract audio</b>. The finished files are listed under Results.</li>
+        </ol>
+        <h4>Clipboard</h4>
+        <p>It remembers the last 25 things you copied, text and pictures, so you can use them again. It keeps working in the background while Mjolnir is open.</p>
+        <ol>
+          <li>Copy things as you normally do, with Ctrl+C or Cut. Nothing else to do.</li>
+          <li>Click <b>Clipboard</b> under Tools in the left list to see them, newest first.</li>
+          <li>Click an item, or its <b>Copy</b> button, to put it back on your clipboard. Then paste it anywhere. The item you used moves to the top.</li>
+          <li>When the list is full, the item you used longest ago is removed to make room. Pictures can be PNG, JPG, GIF and more. Items bigger than 10 MB are skipped.</li>
+        </ol>
+        <p>Use <b>Pause</b> before you copy something private, like a password. Copies from password managers are never kept.</p>
+      </section>
+
+    </div>
+  </div>
 </dialog>
 
 <dialog id="dlgBatch">
