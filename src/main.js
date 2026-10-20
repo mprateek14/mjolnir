@@ -9,8 +9,9 @@ const { categoryOf } = require('./engine/util');
 const { DownloaderHost } = require('./downloaders/host');
 const { PhoneLink } = require('./phonelink/server');
 const updates = require('./updates');
+const bridgeAuth = require('./bridgeauth');
 
-const PORT = 24680;
+const PORT = Number(process.env.MJOLNIR_BRIDGE_PORT) || 24680;   // the variable is for tests that run beside a running copy
 let phone = null;
 let win = null;
 let tray = null;
@@ -189,20 +190,23 @@ function captureIpc() {
 }
 
 // Browser extension talks to this.
-const tokenOk = (req) => [req.headers['x-mjolnir-token'], req.headers['x-icefox-token']].includes(mgr.settings.extensionToken);
-// The token keeps random web pages from queueing downloads.
+// Only our extension may use the bridge, so web pages cannot queue downloads (see src/bridgeauth.js).
+// Extensions from before the fixed extension ID still get in with the old token until they are updated.
+const allowed = (req) => bridgeAuth.authorize(req.headers, mgr.settings.extensionToken);
 function startBridge() {
   const srv = http.createServer((req, res) => {
-    const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type, x-mjolnir-token, x-icefox-token' };
+    const cors = bridgeAuth.corsHeaders(req.headers);
+    if (!bridgeAuth.hostOk(req.headers.host)) { res.writeHead(403, cors); return res.end(); }
     if (req.method === 'OPTIONS') { res.writeHead(204, cors); return res.end(); }
     if (req.url === '/ping') { res.writeHead(200, cors); return res.end('mjolnir'); }
-    if (req.method === 'GET' && req.url === '/config') {
-      if (!tokenOk(req)) { res.writeHead(401, cors); return res.end('bad token'); }
+    if ((req.method === 'GET' || req.method === 'POST') && req.url === '/config') {
+      req.resume();
+      if (!allowed(req)) { console.error('Bridge refused a request, Origin:', req.headers.origin || '(none)'); res.writeHead(401, cors); return res.end('not allowed'); }
       res.writeHead(200, { ...cors, 'content-type': 'application/json' });
-      return res.end(JSON.stringify({ enabled: mgr.settings.extensionEnabled !== false, minBytes: Math.max(0, Number(mgr.settings.extensionMinMB) || 0) * 1024 * 1024 }));
+      return res.end(JSON.stringify({ app: 'mjolnir', version: appVersion(), enabled: mgr.settings.extensionEnabled !== false, minBytes: Math.max(0, Number(mgr.settings.extensionMinMB) || 0) * 1024 * 1024 }));
     }
     if (req.method !== 'POST' || !['/add', '/stream', '/link'].includes(req.url)) { res.writeHead(404, cors); return res.end(); }
-    if (!tokenOk(req)) { res.writeHead(401, cors); return res.end('bad token'); }
+    if (!allowed(req)) { res.writeHead(401, cors); return res.end('not allowed'); }
     let body = '';
     req.on('data', (c) => { body += c; if (body.length > 1e6) req.destroy(); });
     req.on('end', () => {
@@ -281,6 +285,12 @@ function ipc() {
     return r.canceled ? null : r.filePaths[0];
   });
   h('clipboard', () => clipboard.readText());
+  // The extension folder people load into their browser: next to the app when installed, in the project when run from source.
+  h('ext:open', async () => {
+    const dir = app.isPackaged ? path.join(process.resourcesPath, 'extension') : path.join(app.getAppPath(), 'extension');
+    const err = await shell.openPath(dir);
+    return err ? { error: err } : { ok: true };
+  });
   h('update:check', () => checkForUpdate(true));
   h('update:version', () => appVersion());
   h('update:skip', (version) => { mgr.setSettings({ skippedVersion: String(version || '') }); });

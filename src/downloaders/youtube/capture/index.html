@@ -36,12 +36,26 @@
   .bar { height: 6px; background: var(--raised); border-radius: 3px; overflow: hidden; }
   .bar i { display: block; height: 100%; width: 0; background: var(--accent); }
   [hidden] { display: none !important; }
-  .center { margin: auto 0; display: grid; gap: 10px; }
+  .center { margin: auto 0; display: grid; gap: 10px; text-align: center; justify-items: center; }
+
+  /* Thor's hammer flies across while we wait: head first to the right, lightning crackling behind it, then it loops */
+  .sky { position: relative; width: 100%; max-width: 420px; height: 84px; margin: 0 auto; overflow: hidden; }
+  .sky[hidden] { display: none; }
+  .flyer { position: absolute; left: 0; top: 0; height: 100%; display: flex; align-items: center; animation: fly 3.1s linear infinite; }
+  .arc { position: relative; animation: arc 1.55s ease-in-out infinite alternate; }
+  .ham { position: relative; z-index: 1; display: block; width: 76px; height: auto; }
+  .bolt { position: absolute; right: calc(100% - 10px); top: 50%; width: 150px; height: 44px; margin-top: -22px; filter: drop-shadow(0 0 3px #5fe0ff) drop-shadow(0 0 8px #5fe0ff88); }
+  .bolt polyline { fill: none; stroke: url(#bolt-grad); stroke-linejoin: round; stroke-linecap: round; }
+  @keyframes fly { 0% { transform: translateX(-210px); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateX(420px); opacity: 0; } }
+  @keyframes arc { from { transform: translateY(4px); } to { transform: translateY(-4px); } }
+  @media (prefers-reduced-motion: reduce) { .flyer, .arc { animation: none; } .flyer { left: 140px; } }
+
 </style>
 </head>
 <body>
 <div class="page">
   <div class="center" id="state">
+    <div class="sky" id="sky"><div class="flyer"><div class="arc"><svg class="bolt" viewBox="0 0 150 44" aria-hidden="true"><defs><linearGradient id="bolt-grad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7fe9ff" stop-opacity="0"/><stop offset=".55" stop-color="#9ff0ff" stop-opacity=".75"/><stop offset="1" stop-color="#ffffff"/></linearGradient></defs></svg><img class="ham" src="hammer-fly.png" alt=""></div></div></div>
     <div class="msg" id="stateMsg">Asking YouTube for the available formats…</div>
     <div class="bar" id="installBar" hidden><i></i></div>
     <div><button class="btn primary" id="btnInstall" hidden>Download engine</button></div>
@@ -77,6 +91,7 @@
     </div>
   </div>
 </div>
+<script src="bolt.js"></script>
 <script src="capture.js"></script>
 </body>
 </html>

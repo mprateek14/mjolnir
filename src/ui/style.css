@@ -221,3 +221,7 @@ body.dl-active .toolbar-row { display: none; }
 .updatebar .updot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px #5b8cff30; flex: none; }
 .updatebar .btn { padding: 3px 10px; }
 .dlg .row .hint { align-self: center; }
+
+.steps { color: var(--dim); font-size: 12.5px; padding-left: 20px; display: grid; gap: 6px; }
+.steps b { color: var(--text); font-weight: 600; }
+.steps .btn { margin-left: 6px; vertical-align: baseline; }

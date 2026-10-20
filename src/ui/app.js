@@ -852,7 +852,6 @@ function renderExt() {
   $('xMin').value = settings.extensionMinMB ?? 2;
   $('xMin').disabled = !$('xOn').checked;
   $('xOnHint').textContent = $('xOn').checked ? 'Downloads the browser starts are sent here and open a small window to confirm.' : 'Off. The browser downloads files itself. The toolbar icon and right-click menu still work.';
-  $('xToken').value = settings.extensionToken;
 }
 $('btnExt').onclick = () => { leaveTool(); renderExt(); if (!dlgExt.open) dlgExt.showModal(); };
 $('xOn').onchange = async () => { settings = await sg.setSettings({ extensionEnabled: $('xOn').checked }); renderExt(); };
@@ -861,8 +860,7 @@ $('xMin').onchange = async () => {
   settings = await sg.setSettings({ extensionMinMB: v });
   renderExt();
 };
-$('xCopy').onclick = () => { $('xToken').select(); navigator.clipboard.writeText($('xToken').value).then(() => toast('Token copied')).catch(() => {}); };
-$('xToken').onfocus = (e) => e.target.select();
+$('xFolder').onclick = async () => { const r = await sg.extOpen(); if (r && r.error) toast(r.error); };
 $('xClose').onclick = () => dlgExt.close();
 
 // ---- phone link ------------------------------------------------------------------

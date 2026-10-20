@@ -12,9 +12,8 @@ function fail(reason) {
   return false;
 }
 
+// No token: the app knows a request is ours from the extension's ID, which the browser adds and a web page cannot fake.
 async function send(url, referrer, filename, path = '/add') {
-  const { token } = await chrome.storage.local.get('token');
-  if (!token) { chrome.runtime.openOptionsPage(); return fail('paste the token in the extension options'); }
   // A page link carries no cookies; the app looks the video up itself.
   const cookies = path === '/link' ? [] : await chrome.cookies.getAll({ url }).catch(() => []);
   const body = {
@@ -23,15 +22,15 @@ async function send(url, referrer, filename, path = '/add') {
     userAgent: navigator.userAgent,
   };
   try {
-    const r = await fetch(`${BRIDGE}${path}`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-mjolnir-token': token }, body: JSON.stringify(body) });
-    if (r.status === 401) { chrome.runtime.openOptionsPage(); return fail('token is wrong, copy it again from Settings in the app'); }
+    const r = await fetch(`${BRIDGE}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    if (r.status === 401) return fail('Mjolnir did not accept this extension. Update Mjolnir and the extension to the latest version');
     if (r.status === 423) return fail('this downloader is turned off in the app, Settings, Downloaders');
     if (r.status === 422) return fail('the app has no downloader for this page');
     if (!r.ok) return fail('the app refused the link (' + r.status + ')');
     chrome.action.setBadgeText({ text: 'OK' });
     chrome.action.setBadgeBackgroundColor({ color: '#2fb26a' });
     setTimeout(() => chrome.action.setBadgeText({ text: '' }), 4000);
-    chrome.action.setTitle({ title: 'Send video stream to Mjolnir' });
+    chrome.action.setTitle({ title: 'Mjolnir' });
     return true;
   } catch {
     return fail('the app is not running'); // let the browser keep the download
@@ -42,8 +41,7 @@ async function send(url, referrer, filename, path = '/add') {
 // If it cannot be reached, fall back to the defaults so send() can report the real problem.
 async function getConfig() {
   try {
-    const { token } = await chrome.storage.local.get('token');
-    const r = await fetch(`${BRIDGE}/config`, { headers: { 'x-mjolnir-token': token || '' } });
+    const r = await fetch(`${BRIDGE}/config`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
     return r.ok ? await r.json() : null;
   } catch { return null; }
 }
@@ -93,16 +91,33 @@ chrome.tabs.onUpdated.addListener((id, change) => {
   if (change.status === 'loading' && change.url !== undefined) { streams.delete(id); badge(id); }
 });
 chrome.tabs.onRemoved.addListener((id) => streams.delete(id));
-// Toolbar icon: on a page the app has a downloader for (a YouTube video, a screener.in company) it opens that
-// downloader's window; elsewhere it sends a video stream the page loaded, if there is one. Otherwise it does nothing.
+// The toolbar popup (popup.html) asks what the current page offers and sends it to Mjolnir:
+// a YouTube video or a screener.in company opens that downloader's window, otherwise a video stream the page loaded
+// is sent, and if there is nothing to send, nothing happens.
 const hasDownloader = (u) => /^https:\/\/((www|m)\.)?youtube\.com\/(watch\?|shorts\/|live\/)/.test(u || '') || /^https:\/\/youtu\.be\//.test(u || '')
   || /^https?:\/\/(www\.)?screener\.in\/company\//.test(u || '');
 
-chrome.action.onClicked.addListener(async (tab) => {
-  if (hasDownloader(tab.url)) { await send(tab.url, '', '', '/link'); return; }
-  const list = streams.get(tab.id) || [];
-  // A master playlist (all qualities) beats a single-quality one.
-  const pick = list.find((u) => /master|index|playlist|manifest/i.test(u)) || list[0];
-  if (!pick) return;
-  await send(pick, tab.url, '', '/stream');
+const pageKind = (u) => (/youtube\.com|youtu\.be/.test(u || '') && hasDownloader(u) ? 'youtube' : hasDownloader(u) ? 'screener' : '');
+
+chrome.runtime.onMessage.addListener((msg, sender, reply) => {
+  if (!msg) return;
+  if (msg.type === 'page-info') {
+    reply({ kind: pageKind(msg.url), streams: (streams.get(msg.tabId) || []).length });
+    return;
+  }
+  if (msg.type === 'download-page') {
+    (async () => {
+      let ok = false;
+      if (hasDownloader(msg.url)) ok = await send(msg.url, '', '', '/link');
+      else {
+        const list = streams.get(msg.tabId) || [];
+        // A master playlist (all qualities) beats a single-quality one.
+        const pick = list.find((u) => /master|index|playlist|manifest/i.test(u)) || list[0];
+        if (!pick) { reply({ ok: false, reason: 'Nothing to download on this page.' }); return; }
+        ok = await send(pick, msg.url, '', '/stream');
+      }
+      reply({ ok, reason: ok ? '' : lastReason });
+    })();
+    return true;   // the answer comes later
+  }
 });

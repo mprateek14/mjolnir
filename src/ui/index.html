@@ -188,15 +188,19 @@
 <dialog id="dlgExt">
   <form method="dialog" class="dlg">
     <h2>Browser extension</h2>
+    <div class="hint">Add the extension to Chrome or Edge once, and your browser's downloads can come to Mjolnir.</div>
+    <ol class="steps">
+      <li>In your browser, open the extensions page. Type <b>chrome://extensions</b> in the address bar (<b>edge://extensions</b> in Edge) and press Enter.</li>
+      <li>Switch on <b>Developer mode</b>. It is a switch near the top right.</li>
+      <li>Click <b>Load unpacked</b>, then pick the Mjolnir extension folder. <button type="button" class="btn sm outline" id="xFolder">Show me the folder</button></li>
+      <li>Click the Mjolnir icon in your browser's toolbar. It says <b>Connected</b> when everything works.</li>
+    </ol>
     <label class="check"><input type="checkbox" id="xOn"> Take over downloads from the browser</label>
     <div class="hint" id="xOnHint"></div>
     <label>Leave files smaller than <span class="hint">MB, the browser keeps these. 0 takes everything.</span>
       <input id="xMin" type="number" min="0" step="1">
     </label>
-    <label>Token <span class="hint">Paste this into the extension's options page, once.</span>
-      <div class="pick"><input id="xToken" readonly><button type="button" class="btn" id="xCopy">Copy</button></div>
-    </label>
-    <div class="hint">Load the <code>extension</code> folder in Chrome or Edge (Developer mode, Load unpacked). The app listens on 127.0.0.1:24680. The toolbar icon and the right-click menu always work. These two settings only apply to downloads the browser starts by itself.</div>
+    <div class="hint">These two settings only apply to downloads your browser starts by itself. The Mjolnir icon in the toolbar and the right-click menu always work.</div>
     <div class="actions"><button type="button" class="btn primary" id="xClose">Done</button></div>
   </form>
 </dialog>

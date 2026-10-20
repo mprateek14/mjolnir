@@ -167,7 +167,7 @@ function fillQualities(keep) {
   const c = $('oCont').value;
   const label = (x) => {
     const p = x.picks[c];
-    return `${x.label}  ·  ${p.codec}${p.size ? '  ·  about ' + bytes(p.size) : ''}`;
+    return `${x.label}  ·  ${p.codec}${p.size ? '  ·  ~' + bytes(p.size) : ''}`;
   };
   q.add(new Option(`Best  ·  ${label(info.qualities[0])}`, '0'));
   for (const x of info.qualities) q.add(new Option(label(x), String(x.height)));
@@ -202,7 +202,7 @@ function currentSize() {
 }
 function updateSize() {
   const s = currentSize();
-  $('pSize').textContent = s ? `About ${bytes(s)}` : '';
+  $('pSize').textContent = s ? `~${bytes(s)}` : '';
 }
 
 // ---- playlist picker -------------------------------------------------------------

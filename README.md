@@ -33,7 +33,7 @@ A download manager for Windows, built with Electron. It downloads files over sev
 
 **Browser extension** (Chrome and Edge)
 - Takes over downloads the browser starts and opens a small confirmation window, so you never leave the browser.
-- The toolbar icon on a YouTube video or a screener.in company page opens that downloader's window. On a page that loaded a video stream it sends the stream.
+- The toolbar icon opens a small panel. "Download from this page" works on a YouTube video, a screener.in company page or a page that loaded a video stream, and opens that downloader's window.
 - The right-click menu item "Download with Mjolnir" works on links, images, video and audio.
 - Turn takeover off, or set a minimum file size, from the extension dialog in the app.
 
@@ -69,10 +69,9 @@ This writes `Mjolnir-Setup-<version>.exe` and `Mjolnir-Portable-<version>.exe` t
 1. Get the extension folder. Download `Mjolnir-Extension-<version>.zip` from the [latest release](https://github.com/mprateek14/mjolnir/releases/latest) and unzip it. It is also the `extension` folder in this repo.
 2. Open `chrome://extensions` (or `edge://extensions`) and turn on Developer mode.
 3. Choose Load unpacked and pick the unzipped folder.
-4. In Mjolnir, click the puzzle icon in the top bar. Copy the token.
-5. Open the extension's options page and paste the token once.
+4. Click the Mjolnir icon in your browser's toolbar. It says Connected when Mjolnir is running. There is nothing to copy or paste.
 
-The extension talks only to `127.0.0.1:24680`, and every request carries the token, so web pages cannot queue downloads on their own.
+The extension talks only to `127.0.0.1:24680`. The browser stamps every request with the extension's ID, which a web page cannot fake, and Mjolnir refuses anything that does not carry it. So web pages cannot queue downloads on their own. The extension has a fixed ID, set by the `key` in its manifest.
 
 ## Phone link
 

@@ -21,7 +21,9 @@ function dur(s) {
   return h ? `${h}:${String(m).padStart(2, '0')}:${String(x).padStart(2, '0')}` : `${m}:${String(x).padStart(2, '0')}`;
 }
 
-function say(text, bad) {
+// busy: show the flying hammer while we wait on something
+function say(text, bad, busy) {
+  $('sky').hidden = !busy;
   $('state').hidden = false;
   $('main').hidden = true;
   $('stateMsg').textContent = text;
@@ -31,12 +33,12 @@ function say(text, bad) {
 async function load() {
   const st = await dl.invoke('status');
   if (!st.installed) {
-    say('The YouTube downloader needs its one-time setup (about 18 MB).');
+    say('The YouTube downloader needs its one-time setup (~18 MB).');
     $('btnInstall').hidden = false;
     return;
   }
   $('btnInstall').hidden = true;
-  say('Asking YouTube for the available formats…');
+  say('Asking YouTube for the available formats…', false, true);
   try {
     [info, settings] = await Promise.all([dl.invoke('info', dl.capUrl), dl.invoke('getSettings')]);
   } catch (e) {
@@ -63,7 +65,7 @@ function fillQualities(keep) {
   const c = $('cont').value;
   const label = (x) => {
     const p = x.picks[c];
-    return `${x.label}  ·  ${p.codec}${p.size ? '  ·  about ' + bytes(p.size) : ''}`;
+    return `${x.label}  ·  ${p.codec}${p.size ? '  ·  ~' + bytes(p.size) : ''}`;
   };
   q.add(new Option(`Best  ·  ${label(info.qualities[0])}`, '0'));
   for (const x of info.qualities) q.add(new Option(label(x), String(x.height)));
@@ -83,7 +85,7 @@ function currentSize() {
 }
 function updateSize() {
   const s = currentSize();
-  $('size').textContent = s ? `About ${bytes(s)}` : '';
+  $('size').textContent = s ? `~${bytes(s)}` : '';
 }
 
 function setMode(m) {

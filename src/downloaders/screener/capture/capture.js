@@ -7,7 +7,9 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 let found = null;
 let settings = {};
 
-function say(text, bad) {
+// busy: show the flying hammer while we wait on something
+function say(text, bad, busy) {
+  $('sky').hidden = !busy;
   $('state').hidden = false;
   $('main').hidden = true;
   $('stateMsg').textContent = text;
@@ -20,6 +22,7 @@ function where() {
 }
 
 async function load() {
+  $('sky').hidden = false;   // the page starts in its loading state
   try {
     [found, settings] = await Promise.all([dl.invoke('lookup', dl.capUrl), dl.invoke('getSettings')]);
   } catch (e) {
